@@ -2,7 +2,7 @@ let randomCounts = [];
 let total = 20;
 
 function setup() {
-  createCanvas(1600, 800);
+  createCanvas(windowWidth, windowHeight);
   sloan = loadImage("SmilingEyesOpen.png");
   for (let i = 0; i < total; i++){
     randomCounts[i] = 0; 
