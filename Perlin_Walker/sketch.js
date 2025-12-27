@@ -1,7 +1,7 @@
 let walker; 
 
 function setup() {
-  createCanvas(700, 400);
+  createCanvas(windowWidth, windowHeight);
   imageMode(CENTER); 
   //angleMode(DEGREES); 
   head = loadImage("Me_Head.png"); 
