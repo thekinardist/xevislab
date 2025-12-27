@@ -11,10 +11,8 @@ function setup() {
 }
 
 function draw() {
-  if (keyIsDown(UP_ARROW) === true){
     walker.step();
     walker.show();
-  }
 }
 
 class Walker{
