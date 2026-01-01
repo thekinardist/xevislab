@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Generative Sine Wave - Three.js</title>
+    <style>
+        /* CSS to ensure full-screen canvas */
+        body { margin: 0; overflow: hidden; background-color: #111; }
+        canvas { display: block; }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- 1. CONFIGURATION ---
+        const CONFIG = {
+            gridSize: 30,       // 30x30 grid (900 objects)
+            spacing: 0.6,       // Distance between centers
+            boxSize: 0.5,       // Size of each cube
+            waveSpeed: 2.0,     // Speed of animation
+            waveHeight: 2.0,    // Amplitude
+            waveFrequency: 0.5  // Ripple tightness
+        };
+
+        // --- 2. SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+        scene.fog = new THREE.Fog(0x1a1a1a, 15, 35); // Fog for depth
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(15, 12, 15); // Elevated view
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance cap
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;     // Slowly rotate the entire view
+        controls.autoRotateSpeed = 1.0;
+
+        // --- 3. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+
+        // Directional light to create shadows and highlights
+        const dirLight = new THREE.DirectionalLight(0xffaa00, 2); // Orange tint
+        dirLight.position.set(10, 20, 10);
+        scene.add(dirLight);
+        
+        // Secondary colored light for artistic contrast
+        const blueLight = new THREE.PointLight(0x0055ff, 5, 50);
+        blueLight.position.set(-5, 5, -5);
+        scene.add(blueLight);
+
+        // --- 4. GENERATIVE OBJECTS (InstancedMesh) ---
+        const geometry = new THREE.BoxGeometry(CONFIG.boxSize, CONFIG.boxSize, CONFIG.boxSize);
+        const material = new THREE.MeshStandardMaterial({ 
+            roughness: 0.2, 
+            metalness: 0.6 
+        });
+
+        const totalInstances = CONFIG.gridSize * CONFIG.gridSize;
+        const mesh = new THREE.InstancedMesh(geometry, material, totalInstances);
+        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // Optimize for frequent updates
+        scene.add(mesh);
+
+        const dummy = new THREE.Object3D(); // Helper for matrix math
+
+        // --- 5. ANIMATION LOOP ---
+        const clock = new THREE.Clock(); // Robust time tracking
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+            const centerOffset = (CONFIG.gridSize * CONFIG.spacing) / 2;
+            let i = 0;
+
+            // Iterate through Grid
+            for (let x = 0; x < CONFIG.gridSize; x++) {
+                for (let z = 0; z < CONFIG.gridSize; z++) {
+                    
+                    // Determine world position
+                    const xPos = (x * CONFIG.spacing) - centerOffset;
+                    const zPos = (z * CONFIG.spacing) - centerOffset;
+                    
+                    // --- Generative Logic ---
+                    // Calculate distance from center (0,0)
+                    const dist = Math.sqrt(xPos*xPos + zPos*zPos);
+                    
+                    // Sine wave based on distance and time
+                    const yPos = Math.sin(dist * CONFIG.waveFrequency - time * CONFIG.waveSpeed) * CONFIG.waveHeight;
+                    
+                    // Apply to dummy
+                    dummy.position.set(xPos, yPos, zPos);
+                    
+                    // Coupled rotation: Rotate based on wave height
+                    dummy.rotation.x = yPos * 0.5; 
+                    dummy.rotation.z = yPos * 0.3;
+                    
+                    // Scale effect: Scale down slightly at the troughs of the wave
+                    const scale = 1.0 + (yPos / CONFIG.waveHeight) * 0.3;
+                    dummy.scale.set(scale, scale, scale);
+
+                    dummy.updateMatrix();
+                    mesh.setMatrixAt(i, dummy.matrix);
+                    
+                    i++;
+                }
+            }
+
+            mesh.instanceMatrix.needsUpdate = true; // Essential!
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // --- 6. RESIZE HANDLER ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
