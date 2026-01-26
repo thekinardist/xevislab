@@ -7,7 +7,7 @@ var particle = [];
 var flowfield = [];
 
 function setup() {
-  createCanvas(1200, 900);
+  createCanvas(windowWidth, windowHeight);
   cols = floor(width / scl);
   rows = floor(height / scl);
 
@@ -61,4 +61,5 @@ function draw() {
     particle[i].show();
 
   }
+
 }
