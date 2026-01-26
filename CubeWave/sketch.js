@@ -5,7 +5,7 @@ let gui;
 let boxShader; 
 
 function setup() {
-  let p5canvas = createCanvas(800, 400, WEBGL); 
+  let p5canvas = createCanvas(windowWidth, windowHeight, WEBGL); 
   gui = createGUI('slider', p5canvas); 
   gui.slider('angle', 50, height - 40, width -100, 30).scheme('purple')
       .opaque()
@@ -57,5 +57,6 @@ function draw() {
   push(); 
 
   gui.draw(); 
+
 
 }
