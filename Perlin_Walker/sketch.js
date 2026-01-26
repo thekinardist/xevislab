@@ -41,7 +41,10 @@ class Walker{
     this.ss += 0.03; 
   }
 }
-
+function mousePressed(){
+clear();
+background(255); 
+}
 function keyPressed(){
   if (key === 'c'){
     clear();
